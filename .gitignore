@@ -1,3 +1,4 @@
 localdata
 bin
 .env
+Makefile
