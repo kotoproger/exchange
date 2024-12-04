@@ -93,8 +93,9 @@ func (q *Queries) GetRateOnDate(ctx context.Context, arg GetRateOnDateParams) (*
 const UpdateRate = `-- name: UpdateRate :one
 insert into general.current_rates (currency_from, currency_to, rate, updated_at) 
 values ($1, $2, $3, now())
-on conflict (currency_from, currency_to) do update
+on conflict (currency_from, currency_to) do update 
     set rate = EXCLUDED.rate, updated_at=EXCLUDED.updated_at
+    where rate != EXCLUDED.rate
 RETURNING currency_from, currency_to, rate
 `
 
