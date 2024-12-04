@@ -1,4 +1,4 @@
-name: Otus homework tests
+name: tests
 
 on:
   push:
