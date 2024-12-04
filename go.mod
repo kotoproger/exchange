@@ -2,8 +2,6 @@ module github.com/kotoproger/exchange
 
 go 1.22
 
-toolchain go1.23.1
-
 require (
 	github.com/Rhymond/go-money v1.0.14
 	github.com/jackc/pgx/v5 v5.7.1
