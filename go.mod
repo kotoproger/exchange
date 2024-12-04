@@ -2,8 +2,6 @@ module github.com/kotoproger/exchange
 
 go 1.22
 
-toolchain go1.23.1
-
 require (
 	github.com/Rhymond/go-money v1.0.14
 	github.com/jackc/pgx/v5 v5.7.1
@@ -11,7 +9,7 @@ require (
 )
 
 require (
-	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirectt
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/kr/text v0.2.0 // indirect
