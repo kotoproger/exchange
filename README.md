@@ -1,1 +1,1 @@
-![tests](https://github.com/kotoproger/exchange/actions/workflows/tests.yml/badge.svg) ![CodeQl](https://github.com/kotoproger/exchange/actions/workflows/github-code-scanning/codeql/badge.svg)
+![GoLint](https://github.com/kotoproger/exchange/actions/workflows/linter.yml/badge.svg) ![Tests](https://github.com/kotoproger/exchange/actions/workflows/tests.yml/badge.svg) ![CodeQl](https://github.com/kotoproger/exchange/actions/workflows/github-code-scanning/codeql/badge.svg)
