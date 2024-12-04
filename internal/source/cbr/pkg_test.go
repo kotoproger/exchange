@@ -11,13 +11,13 @@ import (
 func TestTranformRates(t *testing.T) {
 	testCases := []struct {
 		name   string
-		input  []CbrRate
+		input  []Rate
 		output []source.ExchangeRate
 	}{
-		{name: "empty", input: []CbrRate{}, output: []source.ExchangeRate{}},
+		{name: "empty", input: []Rate{}, output: []source.ExchangeRate{}},
 		{
 			name:  "one currency",
-			input: []CbrRate{{CurrencyCode: "USD", Nominal: 2, Rate: 50}},
+			input: []Rate{{CurrencyCode: "USD", Nominal: 2, Rate: 50}},
 			output: []source.ExchangeRate{
 				{
 					From: *money.GetCurrency("RUB"),
@@ -33,7 +33,7 @@ func TestTranformRates(t *testing.T) {
 		},
 		{
 			name: "two currencies",
-			input: []CbrRate{
+			input: []Rate{
 				{CurrencyCode: "USD", Nominal: 1, Rate: 104.2361},
 				{CurrencyCode: "KZT", Nominal: 100, Rate: 19.9},
 			},

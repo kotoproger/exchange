@@ -1,15 +1,15 @@
 package cbr
 
-type CbrAnswer struct {
-	Rates map[string]CbrRate `json:"Valute"`
+type Answer struct {
+	Rates map[string]Rate `json:"Valute"` //nolint:tagliatelle
 }
 
-type CbrRate struct {
-	CurrencyCode string  `json:"CharCode"`
-	Nominal      int32   `json:"Nominal"`
-	Rate         float64 `json:"Value"`
+type Rate struct {
+	CurrencyCode string  `json:"CharCode"` //nolint:tagliatelle
+	Nominal      int32   `json:"Nominal"`  //nolint:tagliatelle
+	Rate         float64 `json:"Value"`    //nolint:tagliatelle
 }
 
-func getRates() []CbrRate {
-	return []CbrRate{}
+func getRates() []Rate {
+	return []Rate{}
 }

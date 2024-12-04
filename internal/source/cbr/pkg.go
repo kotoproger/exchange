@@ -5,8 +5,7 @@ import (
 	"github.com/kotoproger/exchange/internal/source"
 )
 
-type Cbr struct {
-}
+type Cbr struct{}
 
 func (c Cbr) Get() <-chan source.ExchangeRate {
 	output := make(chan source.ExchangeRate)
@@ -16,7 +15,7 @@ func (c Cbr) Get() <-chan source.ExchangeRate {
 	return output
 }
 
-func tranformRates(in chan<- source.ExchangeRate, rawRates []CbrRate) {
+func tranformRates(in chan<- source.ExchangeRate, rawRates []Rate) {
 	defer close(in)
 
 	rubCurrency := money.GetCurrency("RUB")
