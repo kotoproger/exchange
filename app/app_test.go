@@ -35,7 +35,6 @@ func TestExchangeSuccessfuly(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, money.New(1000, "usd"), actualMoney)
 	repositoryMock.AssertExpectations(t)
-
 }
 
 func TestExchangeErrorneus(t *testing.T) {
@@ -59,7 +58,6 @@ func TestExchangeErrorneus(t *testing.T) {
 	assert.Nil(t, actualMoney)
 	assert.NotNil(t, err)
 	repositoryMock.AssertExpectations(t)
-
 }
 
 func TestExchangeToDateErrorneus(t *testing.T) {

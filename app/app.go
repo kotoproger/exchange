@@ -94,12 +94,12 @@ func (app *App) UpdateRates() error {
 	}
 	for _, source := range app.rateSources {
 		for rate := range source.Get() {
-			_, ok := updatedPairs[rate.From.Code]
-			if !ok {
+			_, ok2 := updatedPairs[rate.From.Code]
+			if !ok2 {
 				updatedPairs[rate.From.Code] = make(map[string]bool)
 			}
-			_, ok = updatedPairs[rate.From.Code][rate.To.Code]
-			if ok {
+			_, ok3 := updatedPairs[rate.From.Code][rate.To.Code]
+			if ok3 {
 				continue
 			}
 			var pgRate pgtype.Numeric
