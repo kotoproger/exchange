@@ -23,10 +23,14 @@ func main() {
 	if err != nil {
 		panic("cant create connection pool")
 	}
+	sourceUrl, ok := os.LookupEnv("APP_CB_API")
+	if !ok {
+		panic("cant get exchange source url")
+	}
 	app := app.NewApp(
 		context.Background(),
 		[]source.ExchangeSource{
-			cbr.NewCbr("https://www.cbr-xml-daily.ru/daily_json.js"),
+			cbr.NewCbr(sourceUrl),
 		},
 		pool,
 	)
