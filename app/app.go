@@ -4,20 +4,39 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"strconv"
 	"time"
 
 	"github.com/Rhymond/go-money"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/kotoproger/exchange/internal/repository"
 	"github.com/kotoproger/exchange/internal/source"
 )
 
 type App struct {
-	repository  repository.Queries
+	repository  *repository.Queries
 	ctx         context.Context
 	rateSources []source.ExchangeSource
-	conn        pgx.Conn
+	pool        *pgxpool.Pool
+}
+
+func NewApp(
+	ctx context.Context,
+	sources []source.ExchangeSource,
+	pool *pgxpool.Pool,
+) *App {
+	conn, err := pool.Acquire(ctx)
+	if err != nil {
+		panic(fmt.Errorf("cant acquire connection: %w", err))
+	}
+	return &App{
+		repository:  repository.New(conn),
+		ctx:         ctx,
+		rateSources: sources,
+		pool:        pool,
+	}
 }
 
 func (app *App) convert(amount *money.Money, to *money.Currency, rate float64) *money.Money {
@@ -57,6 +76,11 @@ func (app *App) ExchangeToDate(amount *money.Money, to *money.Currency, date tim
 
 func (app *App) UpdateRates() error {
 	updatedPairs := make(map[string]map[string]bool)
+	conn, acquireerr := app.pool.Acquire(app.ctx)
+	if acquireerr != nil {
+		return fmt.Errorf("acquire connection from pool: %w", acquireerr)
+	}
+	defer conn.Release()
 	for _, source := range app.rateSources {
 		for rate := range source.Get() {
 			_, ok := updatedPairs[rate.From.Code]
@@ -68,12 +92,12 @@ func (app *App) UpdateRates() error {
 				continue
 			}
 			var pgRate pgtype.Numeric
-			scanErr := pgRate.Scan(rate.Rate)
+			scanErr := pgRate.Scan(strconv.FormatFloat(rate.Rate, 'f', -1, 64))
 			if scanErr != nil {
 				return fmt.Errorf("convert rate: %w", scanErr)
 			}
 			updatedPairs[rate.From.Code][rate.To.Code] = true
-			transaction, err := app.conn.BeginTx(
+			transaction, err := conn.BeginTx(
 				app.ctx,
 				pgx.TxOptions{IsoLevel: pgx.ReadCommitted},
 			)
@@ -82,7 +106,7 @@ func (app *App) UpdateRates() error {
 			}
 
 			transactionRepository := app.repository.WithTx(transaction)
-			transactionRepository.UpdateRate(
+			updateerr := transactionRepository.UpdateRate(
 				app.ctx,
 				repository.UpdateRateParams{
 					CurrencyFrom: rate.From.Code,
@@ -90,14 +114,25 @@ func (app *App) UpdateRates() error {
 					Rate:         pgRate,
 				},
 			)
-			transactionRepository.ArchiveRate(
+			if updateerr != nil {
+				return fmt.Errorf("update rate: %w", updateerr)
+			}
+
+			archiveerr := transactionRepository.ArchiveRate(
 				app.ctx,
 				repository.ArchiveRateParams{
 					CurrencyFrom: rate.From.Code,
 					CurrencyTo:   rate.To.Code,
 				},
 			)
-			transaction.Commit(app.ctx)
+			if archiveerr != nil {
+				return fmt.Errorf("update rate: %w", archiveerr)
+			}
+
+			commiterr := transaction.Commit(app.ctx)
+			if commiterr != nil {
+				return fmt.Errorf("commit: %w", commiterr)
+			}
 		}
 	}
 

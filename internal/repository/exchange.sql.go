@@ -11,11 +11,10 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const ArchiveRate = `-- name: ArchiveRate :one
+const ArchiveRate = `-- name: ArchiveRate :exec
 insert into general.history_rates(currency_from, currency_to, created_at, rate) 
 (select cur.currency_from, cur.currency_to, cur.updated_at, cur.rate from general.current_rates as cur where cur.currency_from = $1 AND cur.currency_to = $2)
 ON CONFLICT (currency_from, currency_to, created_at) DO NOTHING
-RETURNING currency_from, currency_to, rate
 `
 
 type ArchiveRateParams struct {
@@ -23,17 +22,9 @@ type ArchiveRateParams struct {
 	CurrencyTo   string `db:"currency_to" json:"currency_to"`
 }
 
-type ArchiveRateRow struct {
-	CurrencyFrom string         `db:"currency_from" json:"currency_from"`
-	CurrencyTo   string         `db:"currency_to" json:"currency_to"`
-	Rate         pgtype.Numeric `db:"rate" json:"rate"`
-}
-
-func (q *Queries) ArchiveRate(ctx context.Context, arg ArchiveRateParams) (*ArchiveRateRow, error) {
-	row := q.db.QueryRow(ctx, ArchiveRate, arg.CurrencyFrom, arg.CurrencyTo)
-	var i ArchiveRateRow
-	err := row.Scan(&i.CurrencyFrom, &i.CurrencyTo, &i.Rate)
-	return &i, err
+func (q *Queries) ArchiveRate(ctx context.Context, arg ArchiveRateParams) error {
+	_, err := q.db.Exec(ctx, ArchiveRate, arg.CurrencyFrom, arg.CurrencyTo)
+	return err
 }
 
 const GetCuurentRate = `-- name: GetCuurentRate :one
@@ -90,13 +81,12 @@ func (q *Queries) GetRateOnDate(ctx context.Context, arg GetRateOnDateParams) (*
 	return &i, err
 }
 
-const UpdateRate = `-- name: UpdateRate :one
+const UpdateRate = `-- name: UpdateRate :exec
 insert into general.current_rates (currency_from, currency_to, rate, updated_at) 
 values ($1, $2, $3, now())
 on conflict (currency_from, currency_to) do update 
     set rate = EXCLUDED.rate, updated_at=EXCLUDED.updated_at
-    where rate != EXCLUDED.rate
-RETURNING currency_from, currency_to, rate
+    where current_rates.rate != EXCLUDED.rate
 `
 
 type UpdateRateParams struct {
@@ -105,15 +95,7 @@ type UpdateRateParams struct {
 	Rate         pgtype.Numeric `db:"rate" json:"rate"`
 }
 
-type UpdateRateRow struct {
-	CurrencyFrom string         `db:"currency_from" json:"currency_from"`
-	CurrencyTo   string         `db:"currency_to" json:"currency_to"`
-	Rate         pgtype.Numeric `db:"rate" json:"rate"`
-}
-
-func (q *Queries) UpdateRate(ctx context.Context, arg UpdateRateParams) (*UpdateRateRow, error) {
-	row := q.db.QueryRow(ctx, UpdateRate, arg.CurrencyFrom, arg.CurrencyTo, arg.Rate)
-	var i UpdateRateRow
-	err := row.Scan(&i.CurrencyFrom, &i.CurrencyTo, &i.Rate)
-	return &i, err
+func (q *Queries) UpdateRate(ctx context.Context, arg UpdateRateParams) error {
+	_, err := q.db.Exec(ctx, UpdateRate, arg.CurrencyFrom, arg.CurrencyTo, arg.Rate)
+	return err
 }

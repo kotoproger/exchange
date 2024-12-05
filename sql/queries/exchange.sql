@@ -14,16 +14,16 @@ AND hr1.created_at = (
     order by hr.currency_from asc, hr.currency_to asc, hr.rate asc
     );
 
--- name: UpdateRate :one
+-- name: UpdateRate :exec
 insert into general.current_rates (currency_from, currency_to, rate, updated_at) 
 values ($1, $2, $3, now())
 on conflict (currency_from, currency_to) do update 
     set rate = EXCLUDED.rate, updated_at=EXCLUDED.updated_at
-    where rate != EXCLUDED.rate
-RETURNING currency_from, currency_to, rate;
+    where current_rates.rate != EXCLUDED.rate
+;
 
--- name: ArchiveRate :one
+-- name: ArchiveRate :exec
 insert into general.history_rates(currency_from, currency_to, created_at, rate) 
 (select cur.currency_from, cur.currency_to, cur.updated_at, cur.rate from general.current_rates as cur where cur.currency_from = $1 AND cur.currency_to = $2)
 ON CONFLICT (currency_from, currency_to, created_at) DO NOTHING
-RETURNING currency_from, currency_to, rate;
+;

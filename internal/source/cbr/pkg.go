@@ -5,22 +5,33 @@ import (
 	"github.com/kotoproger/exchange/internal/source"
 )
 
-type Cbr struct{}
+type Cbr struct {
+	url string
+}
+
+func NewCbr(url string) *Cbr {
+	return &Cbr{url: url}
+}
 
 func (c Cbr) Get() <-chan source.ExchangeRate {
 	output := make(chan source.ExchangeRate)
-
-	go tranformRates(output, getRates())
+	input := make(chan Rate)
+	go getRates(input, c.url)
+	go tranformRates(output, input)
 
 	return output
 }
 
-func tranformRates(in chan<- source.ExchangeRate, rawRates []Rate) {
+func tranformRates(in chan<- source.ExchangeRate, input <-chan Rate) {
 	defer close(in)
 
 	rubCurrency := money.GetCurrency("RUB")
 	if rubCurrency == nil {
 		return
+	}
+	rawRates := []Rate{}
+	for rate := range input {
+		rawRates = append(rawRates, rate)
 	}
 	for _, rate := range rawRates {
 		toCurrency := money.GetCurrency(rate.CurrencyCode)
