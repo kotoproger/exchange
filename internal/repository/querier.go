@@ -9,10 +9,10 @@ import (
 )
 
 type Querier interface {
-	ArchiveRate(ctx context.Context, arg ArchiveRateParams) (*ArchiveRateRow, error)
+	ArchiveRate(ctx context.Context, arg ArchiveRateParams) error
 	GetCuurentRate(ctx context.Context, arg GetCuurentRateParams) (*GetCuurentRateRow, error)
 	GetRateOnDate(ctx context.Context, arg GetRateOnDateParams) (*GetRateOnDateRow, error)
-	UpdateRate(ctx context.Context, arg UpdateRateParams) (*UpdateRateRow, error)
+	UpdateRate(ctx context.Context, arg UpdateRateParams) error
 }
 
 var _ Querier = (*Queries)(nil)
