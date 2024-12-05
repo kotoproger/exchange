@@ -1,6 +1,5 @@
 localdata
 bin
 .env
-Makefile
 *.out
 *.html
