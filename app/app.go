@@ -54,7 +54,11 @@ func (app *App) Exchange(amount *money.Money, to *money.Currency) (*money.Money,
 		return nil, fmt.Errorf("find Exchange rate: %w", repoError)
 	}
 
-	return app.convert(amount, to, float64(rateRow.Rate.Exp)), nil
+	pgfloat, err := rateRow.Rate.Float64Value()
+	if err != nil {
+		return nil, fmt.Errorf("get float 64 value from db: %w", err)
+	}
+	return app.convert(amount, to, pgfloat.Float64), nil
 }
 
 func (app *App) ExchangeToDate(amount *money.Money, to *money.Currency, date time.Time) (*money.Money, error) {
