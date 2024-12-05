@@ -15,11 +15,11 @@ import (
 func main() {
 	godotenv.Load()
 
-	connUrl, ok := os.LookupEnv("DATABASE_URL")
+	connURL, ok := os.LookupEnv("DATABASE_URL")
 	if !ok {
 		panic("cant get connection url")
 	}
-	pool, err := pgxpool.New(context.Background(), connUrl)
+	pool, err := pgxpool.New(context.Background(), connURL)
 	if err != nil {
 		panic("cant create connection pool")
 	}

@@ -75,7 +75,12 @@ func TestTranformRates(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
 			output := make(chan source.ExchangeRate, len(testCase.output))
-			tranformRates(output, testCase.input)
+			input := make(chan Rate, len(testCase.input))
+			for _, rate := range testCase.input {
+				input <- rate
+			}
+			close(input)
+			tranformRates(output, input)
 			actualRates := make([]source.ExchangeRate, 0)
 			for rate := range output {
 				actualRates = append(actualRates, rate)

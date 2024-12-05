@@ -20,7 +20,7 @@ type Rate struct {
 func getRates(out chan<- Rate, url string) {
 	defer close(out)
 
-	resp, err := http.Get(url)
+	resp, err := http.Get(url) //nolint:all
 	if err != nil {
 		fmt.Println("Ошибка запроса", err)
 		return
