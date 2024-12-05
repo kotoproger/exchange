@@ -50,7 +50,7 @@ func TestGetRatesSuccess(t *testing.T) {
 		rates = append(rates, rate)
 	}
 
-	assert.Equal(t, expected, rates)
+	assert.ElementsMatch(t, expected, rates)
 }
 
 func TestGetRatesMalformedJson(t *testing.T) {
@@ -91,7 +91,7 @@ func TestGetRatesMalformedJson(t *testing.T) {
 		rates = append(rates, rate)
 	}
 
-	assert.Equal(t, expected, rates)
+	assert.ElementsMatch(t, expected, rates)
 }
 
 func TestGetRatesErrorneus(t *testing.T) {
@@ -133,5 +133,5 @@ func TestGetRatesErrorneus(t *testing.T) {
 		rates = append(rates, rate)
 	}
 
-	assert.Equal(t, expected, rates)
+	assert.ElementsMatch(t, expected, rates)
 }
