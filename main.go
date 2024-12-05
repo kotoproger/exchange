@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -10,12 +9,13 @@ import (
 	"github.com/kotoproger/exchange/app"
 	"github.com/kotoproger/exchange/internal/source"
 	"github.com/kotoproger/exchange/internal/source/cbr"
+	"github.com/kotoproger/exchange/userinterface/console"
 )
 
 func main() {
 	godotenv.Load()
 
-	connURL, ok := os.LookupEnv("DATABASE_URL")
+	connURL, ok := os.LookupEnv("APP_DATABASE_URL")
 	if !ok {
 		panic("cant get connection url")
 	}
@@ -31,5 +31,6 @@ func main() {
 		pool,
 	)
 
-	fmt.Println(app.UpdateRates())
+	controller := console.NewConsole(app)
+	controller.Run()
 }
