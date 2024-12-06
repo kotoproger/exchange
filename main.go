@@ -19,14 +19,17 @@ func main() {
 	if !ok {
 		panic("cant get connection url")
 	}
+
 	pool, err := pgxpool.New(context.Background(), connURL)
 	if err != nil {
 		panic("cant create connection pool")
 	}
+
 	sourceURL, ok := os.LookupEnv("APP_CB_API")
 	if !ok {
 		panic("cant get exchange source url")
 	}
+
 	app := app.NewApp(
 		context.Background(),
 		[]source.ExchangeSource{
@@ -35,6 +38,6 @@ func main() {
 		pool,
 	)
 
-	controller := console.NewConsole(app)
+	controller := console.NewConsole(app, os.Stdin, os.Stdout)
 	controller.Run()
 }

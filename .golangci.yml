@@ -26,6 +26,16 @@ issues:
         - dupl
         - gocyclo
         - gosec
+        - govet
+        - lll
+    - path: _test_
+      linters:
+        - errcheck
+        - dupl
+        - gocyclo
+        - gosec
+        - govet
+        - lll
 
 linters:
   disable-all: true

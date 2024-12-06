@@ -7,7 +7,7 @@ PROJECT_TMP = $(PROJECT_DIR)/tmp
 install-deps:
 	GOBIN=$(PROJECT_BIN) go install github.com/pressly/goose/v3/cmd/goose@latest
 	GOBIN=$(PROJECT_BIN) go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
-	gGOBIN=$(PROJECT_BIN) go install github.com/golang/mock/mockgen@latest
+	GOBIN=$(PROJECT_BIN) go install github.com/golang/mock/mockgen@latest
 migration-status:
 	$(PROJECT_BIN)/goose -dir ${MIGRATION_DIR} postgres ${MIGRATION_DSN} status -v
 migration-add:
@@ -21,3 +21,8 @@ gen-sql:
 	$(PROJECT_BIN)/sqlc generate
 lint:
 	~/go/bin/golangci-lint run --fix
+
+mocks: 
+	@echo "Generating mocks..."
+	@rm -rf $(MOCKS_DESTINATION)
+	@for file in $^; do mockgen -source=$$file -destination=$(MOCKS_DESTINATION)/$$file; done

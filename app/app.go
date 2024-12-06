@@ -16,7 +16,7 @@ import (
 )
 
 type App struct {
-	repository  *repository.Queries
+	repository  repository.Querier
 	ctx         context.Context
 	rateSources []source.ExchangeSource
 	pool        *pgxpool.Pool
@@ -74,8 +74,11 @@ func (app *App) ExchangeToDate(amount *money.Money, to *money.Currency, date tim
 	if repoError != nil {
 		return nil, fmt.Errorf("find Exchange rate on date %s: %w", date.String(), repoError)
 	}
-
-	return app.convert(amount, to, float64(rateRow.Rate.Exp)), nil
+	pgfloat, err := rateRow.Rate.Float64Value()
+	if err != nil {
+		return nil, fmt.Errorf("get float 64 value from db: %w", err)
+	}
+	return app.convert(amount, to, pgfloat.Float64), nil
 }
 
 func (app *App) UpdateRates() error {
@@ -85,14 +88,18 @@ func (app *App) UpdateRates() error {
 		return fmt.Errorf("acquire connection from pool: %w", acquireerr)
 	}
 	defer conn.Release()
+	repositoryobject, ok := app.repository.(*repository.Queries)
+	if !ok {
+		return fmt.Errorf("get repository from interface")
+	}
 	for _, source := range app.rateSources {
 		for rate := range source.Get() {
-			_, ok := updatedPairs[rate.From.Code]
-			if !ok {
+			_, ok2 := updatedPairs[rate.From.Code]
+			if !ok2 {
 				updatedPairs[rate.From.Code] = make(map[string]bool)
 			}
-			_, ok = updatedPairs[rate.From.Code][rate.To.Code]
-			if ok {
+			_, ok3 := updatedPairs[rate.From.Code][rate.To.Code]
+			if ok3 {
 				continue
 			}
 			var pgRate pgtype.Numeric
@@ -109,7 +116,7 @@ func (app *App) UpdateRates() error {
 				return fmt.Errorf("start transaction: %w", err)
 			}
 
-			transactionRepository := app.repository.WithTx(transaction)
+			transactionRepository := repositoryobject.WithTx(transaction)
 			updateerr := transactionRepository.UpdateRate(
 				app.ctx,
 				repository.UpdateRateParams{
