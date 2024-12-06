@@ -72,17 +72,19 @@ func (c *Console) Run() {
 			} else {
 				dt, tperr := time.Parse(time.RFC3339, args[4])
 				if tperr != nil {
-					c.printError(exchangeError)
+					c.printError(tperr)
 					continue
 				}
 				result, exchangeError = c.app.ExchangeToDate(amount, currencyTo, dt)
 			}
 			if exchangeError != nil {
-				c.printError(exchangeError)
+				c.printError(fmt.Errorf("date time parse error: %w", exchangeError))
 				continue
 			} else if result == nil {
 				c.print("cant find rate")
+				continue
 			}
+			fmt.Println(result)
 			c.print(fmt.Sprintf("%s -> %s", amount.Display(), result.Display()))
 		default:
 			c.print(fmt.Sprintf("Unknown command `%s`", args[0]))
