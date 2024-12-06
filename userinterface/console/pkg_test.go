@@ -115,7 +115,11 @@ func TestRun(t *testing.T) {
 			name:  "successfully exchange + exit",
 			input: "exchange 100 rub usd\nexit\n",
 			output: fmt.Sprintf(
-				"> < %s\n> ",
+				"> < %s -> %s\n> ",
+				money.New(
+					int64(10000),
+					"rub",
+				).Display(),
 				money.New(
 					int64(97),
 					"usd",

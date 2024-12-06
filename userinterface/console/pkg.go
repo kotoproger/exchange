@@ -69,7 +69,7 @@ func (c *Console) Run() {
 				c.printError(exchangeError)
 				continue
 			}
-			c.print(result.Display())
+			c.print(fmt.Sprintf("%s -> %s", amount.Display(), result.Display()))
 		default:
 			c.print(fmt.Sprintf("Unknown command `%s`", args[0]))
 		}
