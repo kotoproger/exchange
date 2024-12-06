@@ -2,6 +2,7 @@ package console
 
 import (
 	"fmt"
+	"io"
 	"math"
 	"strconv"
 
@@ -16,10 +17,12 @@ const (
 
 type Console struct {
 	app app.Exchanger
+	in  io.Reader
+	out io.Writer
 }
 
-func NewConsole(app app.Exchanger) *Console {
-	return &Console{app: app}
+func NewConsole(app app.Exchanger, in io.Reader, out io.Writer) *Console {
+	return &Console{app: app, in: in, out: out}
 }
 
 func (c *Console) Run() {
@@ -35,8 +38,12 @@ func (c *Console) Run() {
 		case string(userinterface.HELP):
 			c.printHelp()
 		case string(userinterface.UPDATE):
-			c.app.UpdateRates()
-			c.print("Update successfully")
+			err := c.app.UpdateRates()
+			if err == nil {
+				c.print("Update successfully")
+			} else {
+				c.printError(err)
+			}
 		case string(userinterface.EXCHANGE):
 			currencyFrom := money.GetCurrency(args[2])
 			if currencyFrom == nil {
@@ -51,6 +58,7 @@ func (c *Console) Run() {
 			floatValue, tofloatError := strconv.ParseFloat(args[1], 64)
 			if tofloatError != nil {
 				c.printError(tofloatError)
+				continue
 			}
 			amount := money.New(
 				int64(math.Round(floatValue*math.Pow(10, float64(currencyFrom.Fraction)))),
@@ -73,14 +81,15 @@ func (c *Console) printHelp() {
 }
 
 func (c *Console) print(str string) {
-	fmt.Print("< ")
-	fmt.Println(str)
+	fmt.Fprint(c.out, "< ")
+	fmt.Fprintln(c.out, str)
 }
 
 func (c *Console) readCommand() ([]string, error) {
-	fmt.Print("> ")
+	fmt.Fprint(c.out, "> ")
+
 	comandName, amount, currencyFrom, currencyTo, input := "", "", "", "", ""
-	count, inputErr := fmt.Scanln(&comandName, &amount, &currencyFrom, &currencyTo)
+	count, inputErr := fmt.Fscanln(c.in, &comandName, &amount, &currencyFrom, &currencyTo)
 	if count == 0 && inputErr != nil {
 		return []string{input}, fmt.Errorf("scan input: %w", inputErr)
 	}
@@ -91,6 +100,6 @@ func (c *Console) readCommand() ([]string, error) {
 }
 
 func (c *Console) printError(err error) {
-	fmt.Print("< ")
-	fmt.Println(err)
+	fmt.Fprint(c.out, "< ")
+	fmt.Fprintln(c.out, err)
 }

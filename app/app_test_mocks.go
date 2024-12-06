@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/kotoproger/exchange/internal/repository"
 	"github.com/stretchr/testify/mock"
@@ -18,10 +17,8 @@ func (q MockQueries) ArchiveRate(ctx context.Context, arg repository.ArchiveRate
 }
 
 func (q MockQueries) GetCuurentRate(ctx context.Context, arg repository.GetCuurentRateParams) (*repository.GetCuurentRateRow, error) {
-	fmt.Println(ctx, arg)
 	args := q.Called(ctx, arg)
 	returnrow, _ := args.Get(0).(repository.GetCuurentRateRow)
-	fmt.Println(returnrow)
 	return &returnrow, args.Error(1)
 }
 
