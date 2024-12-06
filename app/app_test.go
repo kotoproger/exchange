@@ -66,8 +66,10 @@ func TestExchangeToDateErrorneus(t *testing.T) {
 	repositoryMock := MockQueries{}
 	ctx := context.Background()
 	time := time.Now()
+	pgtime := pgtype.Timestamptz{}
+	pgtime.Scan(time)
 	repositoryMock.
-		On("GetRateOnDate", ctx, repository.GetRateOnDateParams{CurrencyFrom: "RUB", CurrencyTo: "USD", CreatedAt: pgtype.Timestamptz{Time: time}}).
+		On("GetRateOnDate", ctx, repository.GetRateOnDateParams{CurrencyFrom: "RUB", CurrencyTo: "USD", CreatedAt: pgtime}).
 		Return(nil, fmt.Errorf("some error")).
 		Once()
 
@@ -90,8 +92,10 @@ func TestExchangeToDateSuccessfuly(t *testing.T) {
 	repositoryMock := MockQueries{}
 	ctx := context.Background()
 	time := time.Now()
+	pgtime := pgtype.Timestamptz{}
+	pgtime.Scan(time)
 	repositoryMock.
-		On("GetRateOnDate", ctx, repository.GetRateOnDateParams{CurrencyFrom: "RUB", CurrencyTo: "USD", CreatedAt: pgtype.Timestamptz{Time: time}}).
+		On("GetRateOnDate", ctx, repository.GetRateOnDateParams{CurrencyFrom: "RUB", CurrencyTo: "USD", CreatedAt: pgtime}).
 		Return(repository.GetRateOnDateRow{CurrencyFrom: "RUB", CurrencyTo: "USD", Rate: pgRate}, nil).
 		Once()
 

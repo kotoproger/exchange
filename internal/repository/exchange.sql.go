@@ -58,7 +58,7 @@ AND hr1.created_at = (
     where hr.currency_from = $1 
     AND hr.currency_to = $2 
     AND hr.created_at < $3 
-    order by hr.currency_from asc, hr.currency_to asc, hr.rate asc
+    group by hr.currency_from, hr.currency_to
     )
 `
 

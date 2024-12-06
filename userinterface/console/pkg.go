@@ -5,6 +5,7 @@ import (
 	"io"
 	"math"
 	"strconv"
+	"time"
 
 	"github.com/Rhymond/go-money"
 	"github.com/kotoproger/exchange/app"
@@ -12,7 +13,23 @@ import (
 )
 
 const (
-	HELP string = ""
+	HELP string = `Утилита для конвертации сумм
+help
+	справка
+
+exit
+	выход
+
+update
+	обновить курсы валют пример: update 100 rub usd
+
+exchange <sum> <currency from> <currency to> [date time]
+	сконвертировать сумму из одной валюту в другую дата - опциональный параметр
+
+пример:
+	exchange 100 rub usd
+	exchange 100 rub usd 2026-01-02T15:04:05Z
+`
 )
 
 type Console struct {
@@ -26,6 +43,7 @@ func NewConsole(app app.Exchanger, in io.Reader, out io.Writer) *Console {
 }
 
 func (c *Console) Run() {
+	c.printHelp()
 	for {
 		args, readerr := c.readCommand()
 		if readerr != nil {
@@ -64,12 +82,26 @@ func (c *Console) Run() {
 				int64(math.Round(floatValue*math.Pow(10, float64(currencyFrom.Fraction)))),
 				currencyFrom.Code,
 			)
-			result, exchangeError := c.app.Exchange(amount, currencyTo)
+			var result *money.Money
+			var exchangeError error
+			if args[4] == "" {
+				result, exchangeError = c.app.Exchange(amount, currencyTo)
+			} else {
+				dt, tperr := time.Parse(time.RFC3339, args[4])
+				if tperr != nil {
+					c.printError(tperr)
+					continue
+				}
+				result, exchangeError = c.app.ExchangeToDate(amount, currencyTo, dt)
+			}
 			if exchangeError != nil {
-				c.printError(exchangeError)
+				c.printError(fmt.Errorf("date time parse error: %w", exchangeError))
+				continue
+			} else if result == nil {
+				c.print("cant find rate")
 				continue
 			}
-			c.print(result.Display())
+			c.print(fmt.Sprintf("%s -> %s", amount.Display(), result.Display()))
 		default:
 			c.print(fmt.Sprintf("Unknown command `%s`", args[0]))
 		}
@@ -88,14 +120,14 @@ func (c *Console) print(str string) {
 func (c *Console) readCommand() ([]string, error) {
 	fmt.Fprint(c.out, "> ")
 
-	comandName, amount, currencyFrom, currencyTo, input := "", "", "", "", ""
-	count, inputErr := fmt.Fscanln(c.in, &comandName, &amount, &currencyFrom, &currencyTo)
+	comandName, amount, currencyFrom, currencyTo, date := "", "", "", "", ""
+	count, inputErr := fmt.Fscanln(c.in, &comandName, &amount, &currencyFrom, &currencyTo, &date)
 	if count == 0 && inputErr != nil {
-		return []string{input}, fmt.Errorf("scan input: %w", inputErr)
+		return []string{comandName}, fmt.Errorf("scan input: %w", inputErr)
 	}
 
 	return []string{
-		comandName, amount, currencyFrom, currencyTo,
+		comandName, amount, currencyFrom, currencyTo, date,
 	}, nil
 }
 
