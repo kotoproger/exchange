@@ -19,6 +19,8 @@ linters-settings:
         strict: true
 
 issues:
+  exclude-dirs:
+    - localdata
   exclude-rules:
     - path: _test\.go
       linters:
