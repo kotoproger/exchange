@@ -22,6 +22,9 @@ gen-sql:
 lint:
 	~/go/bin/golangci-lint run --fix
 
+docker-up:
+	docker compose up -d
+
 docker-migrate:
 	docker compose exec -t app make migration-up
 
