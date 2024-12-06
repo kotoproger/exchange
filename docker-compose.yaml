@@ -12,4 +12,10 @@ services:
         ports:
             - ${APP_DB_PORT}:5432
 
-
+    app:
+        container_name: app
+        build: 
+            target: build-release-stage
+            dockerfile: Dockerfile
+        env_file: .env
+        tty: true

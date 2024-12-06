@@ -22,7 +22,8 @@ gen-sql:
 lint:
 	~/go/bin/golangci-lint run --fix
 
-mocks: 
-	@echo "Generating mocks..."
-	@rm -rf $(MOCKS_DESTINATION)
-	@for file in $^; do mockgen -source=$$file -destination=$(MOCKS_DESTINATION)/$$file; done
+docker-migrate:
+	docker compose exec -t app make migration-up
+
+docker-app:
+	docker compose exec -t app /application
