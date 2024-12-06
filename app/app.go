@@ -62,15 +62,16 @@ func (app *App) Exchange(amount *money.Money, to *money.Currency) (*money.Money,
 }
 
 func (app *App) ExchangeToDate(amount *money.Money, to *money.Currency, date time.Time) (*money.Money, error) {
+	pgtime := pgtype.Timestamptz{}
+	pgtime.Scan(date)
 	rateRow, repoError := app.repository.GetRateOnDate(
 		app.ctx,
 		repository.GetRateOnDateParams{
 			CurrencyFrom: amount.Currency().Code,
 			CurrencyTo:   to.Code,
-			CreatedAt:    pgtype.Timestamptz{Time: date},
+			CreatedAt:    pgtime,
 		},
 	)
-
 	if repoError != nil {
 		return nil, fmt.Errorf("find Exchange rate on date %s: %w", date.String(), repoError)
 	}

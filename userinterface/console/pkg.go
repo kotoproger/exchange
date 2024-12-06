@@ -5,6 +5,7 @@ import (
 	"io"
 	"math"
 	"strconv"
+	"time"
 
 	"github.com/Rhymond/go-money"
 	"github.com/kotoproger/exchange/app"
@@ -64,10 +65,23 @@ func (c *Console) Run() {
 				int64(math.Round(floatValue*math.Pow(10, float64(currencyFrom.Fraction)))),
 				currencyFrom.Code,
 			)
-			result, exchangeError := c.app.Exchange(amount, currencyTo)
+			var result *money.Money
+			var exchangeError error
+			if args[4] == "" {
+				result, exchangeError = c.app.Exchange(amount, currencyTo)
+			} else {
+				dt, tperr := time.Parse(time.RFC3339, args[4])
+				if tperr != nil {
+					c.printError(exchangeError)
+					continue
+				}
+				result, exchangeError = c.app.ExchangeToDate(amount, currencyTo, dt)
+			}
 			if exchangeError != nil {
 				c.printError(exchangeError)
 				continue
+			} else if result == nil {
+				c.print("cant find rate")
 			}
 			c.print(fmt.Sprintf("%s -> %s", amount.Display(), result.Display()))
 		default:
@@ -88,14 +102,14 @@ func (c *Console) print(str string) {
 func (c *Console) readCommand() ([]string, error) {
 	fmt.Fprint(c.out, "> ")
 
-	comandName, amount, currencyFrom, currencyTo, input := "", "", "", "", ""
-	count, inputErr := fmt.Fscanln(c.in, &comandName, &amount, &currencyFrom, &currencyTo)
+	comandName, amount, currencyFrom, currencyTo, date := "", "", "", "", ""
+	count, inputErr := fmt.Fscanln(c.in, &comandName, &amount, &currencyFrom, &currencyTo, &date)
 	if count == 0 && inputErr != nil {
-		return []string{input}, fmt.Errorf("scan input: %w", inputErr)
+		return []string{comandName}, fmt.Errorf("scan input: %w", inputErr)
 	}
 
 	return []string{
-		comandName, amount, currencyFrom, currencyTo,
+		comandName, amount, currencyFrom, currencyTo, date,
 	}, nil
 }
 
