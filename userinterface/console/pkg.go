@@ -13,7 +13,23 @@ import (
 )
 
 const (
-	HELP string = ""
+	HELP string = `Утилита для конвертации сумм
+help
+	справка
+
+exit
+	выход
+
+update
+	обновить курсы валют пример: update 100 rub usd
+
+exchange <sum> <currency from> <currency to> [date time]
+	сконвертировать сумму из одной валюту в другую дата - опциональный параметр
+
+пример:
+	exchange 100 rub usd
+	exchange 100 rub usd 2026-01-02T15:04:05Z
+`
 )
 
 type Console struct {
@@ -27,6 +43,7 @@ func NewConsole(app app.Exchanger, in io.Reader, out io.Writer) *Console {
 }
 
 func (c *Console) Run() {
+	c.printHelp()
 	for {
 		args, readerr := c.readCommand()
 		if readerr != nil {
@@ -84,7 +101,6 @@ func (c *Console) Run() {
 				c.print("cant find rate")
 				continue
 			}
-			fmt.Println(result)
 			c.print(fmt.Sprintf("%s -> %s", amount.Display(), result.Display()))
 		default:
 			c.print(fmt.Sprintf("Unknown command `%s`", args[0]))

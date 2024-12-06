@@ -71,56 +71,63 @@ func TestRun(t *testing.T) { //nolint:funlen
 		{
 			name:        "only exit",
 			input:       "exit\n",
-			output:      "> ",
+			output:      fmt.Sprintf("< %s\n> ", HELP),
+			updateRates: []any{},
+		},
+		{
+			name:        "only exit",
+			input:       "exit\n",
+			output:      fmt.Sprintf("< %s\n> ", HELP),
 			updateRates: []any{},
 		},
 		{
 			name:        "unknown command + exit",
 			input:       "sfdasf\nexit\n",
-			output:      "> < Unknown command `sfdasf`\n> ",
+			output:      fmt.Sprintf("< %s\n> < Unknown command `sfdasf`\n> ", HELP),
 			updateRates: []any{},
 		},
 		{
 			name:        "update rates + exit",
 			input:       "update\nexit\n",
-			output:      "> < Update successfully\n> ",
+			output:      fmt.Sprintf("< %s\n> < Update successfully\n> ", HELP),
 			updateRates: []any{nil},
 		},
 		{
 			name:        "double update rates + exit",
 			input:       "update\nupdate\nexit\n",
-			output:      "> < Update successfully\n> < Update successfully\n> ",
+			output:      fmt.Sprintf("< %s\n> < Update successfully\n> < Update successfully\n> ", HELP),
 			updateRates: []any{nil, nil},
 		},
 		{
 			name:        "errorneus update + exit",
 			input:       "update\nexit\n",
-			output:      "> < some update error\n> ",
+			output:      fmt.Sprintf("< %s\n> < some update error\n> ", HELP),
 			updateRates: []any{fmt.Errorf("some update error")},
 		},
 		{
 			name:        "exchange wrong from surrency + exit",
 			input:       "exchange 100 aas usd\nexit\n",
-			output:      "> < wrong currency code `aas`\n> ",
+			output:      fmt.Sprintf("< %s\n> < wrong currency code `aas`\n> ", HELP),
 			updateRates: []any{},
 		},
 		{
 			name:        "exchange wrong to surrency + exit",
 			input:       "exchange 100 rub aas\nexit\n",
-			output:      "> < wrong currency code `aas`\n> ",
+			output:      fmt.Sprintf("< %s\n> < wrong currency code `aas`\n> ", HELP),
 			updateRates: []any{},
 		},
 		{
 			name:        "exchange float parsing error + exit",
 			input:       "exchange asd rub usd\nexit\n",
-			output:      "> < strconv.ParseFloat: parsing \"asd\": invalid syntax\n> ",
+			output:      fmt.Sprintf("< %s\n> < strconv.ParseFloat: parsing \"asd\": invalid syntax\n> ", HELP),
 			updateRates: []any{},
 		},
 		{
 			name:  "successfully exchange + exit",
 			input: "exchange 100 rub usd\nexit\n",
 			output: fmt.Sprintf(
-				"> < %s -> %s\n> ",
+				"< %s\n> < %s -> %s\n> ",
+				HELP,
 				money.New(
 					int64(10000),
 					"rub",
@@ -156,7 +163,7 @@ func TestRun(t *testing.T) { //nolint:funlen
 		{
 			name:        "not found rate + exit",
 			input:       "exchange 100 rub usd\nexit\n",
-			output:      "> < cant find rate\n> ",
+			output:      fmt.Sprintf("< %s\n> < cant find rate\n> ", HELP),
 			updateRates: []any{},
 			exchanges: []struct {
 				input  []any
@@ -181,7 +188,8 @@ func TestRun(t *testing.T) { //nolint:funlen
 			name:  "successfully exchange to date + exit",
 			input: "exchange 100 rub usd 2026-01-02T15:04:05Z\nexit\n",
 			output: fmt.Sprintf(
-				"> < %s -> %s\n> ",
+				"< %s\n> < %s -> %s\n> ",
+				HELP,
 				money.New(
 					int64(10000),
 					"rub",
@@ -218,13 +226,13 @@ func TestRun(t *testing.T) { //nolint:funlen
 		{
 			name:        "date pare error + exit",
 			input:       "exchange 100 rub usd 2026-01-02T1\nexit\n",
-			output:      "> < parsing time \"2026-01-02T1\" as \"2006-01-02T15:04:05Z07:00\": cannot parse \"\" as \":\"\n> ",
+			output:      fmt.Sprintf("< %s\n> < parsing time \"2026-01-02T1\" as \"2006-01-02T15:04:05Z07:00\": cannot parse \"\" as \":\"\n> ", HELP),
 			updateRates: []any{},
 		},
 		{
 			name:        "not found rate to date + exit",
 			input:       "exchange 100 rub usd 2026-01-02T15:04:05Z\nexit\n",
-			output:      "> < cant find rate\n> ",
+			output:      fmt.Sprintf("< %s\n> < cant find rate\n> ", HELP),
 			updateRates: []any{},
 			exchangesToDate: []struct {
 				input  []any
