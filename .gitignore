@@ -1,5 +1,4 @@
 localdata
 bin
-.env
 *.out
 *.html
