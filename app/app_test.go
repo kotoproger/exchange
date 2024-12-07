@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -293,7 +294,7 @@ func TestApp(t *testing.T) { //nolint:funlen
 			rollback: 0,
 		},
 		{
-			name: "update without empty sources",
+			name: "update with empty sources",
 			run: func(app App) []any {
 				err := app.UpdateRates()
 				return []any{nil, err}
@@ -481,6 +482,156 @@ func TestApp(t *testing.T) { //nolint:funlen
 			release:  2,
 			commit:   2,
 			rollback: 0,
+		},
+		{
+			name: "update error on get repository",
+			run: func(app App) []any {
+				err := app.UpdateRates()
+				return []any{nil, err}
+			},
+			expectedResult: []any{
+				nil,
+				nil,
+			},
+			querier: []struct {
+				method string
+				args   []any
+				res    []any
+			}{},
+			resources: []struct {
+				res []any
+			}{
+				{
+					res: []any{
+						source.ExchangeRate{
+							From: *money.GetCurrency("RUB"),
+							To:   *money.GetCurrency("USD"),
+							Rate: 1.5,
+						},
+					},
+				},
+			},
+			release:  0,
+			commit:   0,
+			rollback: 0,
+			repoPool: fmt.Errorf("some error"),
+		},
+		{
+			name: "update one rate with update error",
+			run: func(app App) []any {
+				err := app.UpdateRates()
+				return []any{nil, err}
+			},
+			expectedResult: []any{
+				nil,
+				nil,
+			},
+			querier: []struct {
+				method string
+				args   []any
+				res    []any
+			}{
+				{
+					method: "UpdateRate",
+					args: []any{
+						ctx,
+						repository.UpdateRateParams{
+							CurrencyFrom: "RUB",
+							CurrencyTo:   "USD",
+							Rate:         getpgtype("1.5"),
+						},
+					},
+					res: []any{
+						fmt.Errorf("some error"),
+					},
+				},
+			},
+			resources: []struct {
+				res []any
+			}{
+				{
+					res: []any{
+						source.ExchangeRate{
+							From: *money.GetCurrency("RUB"),
+							To:   *money.GetCurrency("USD"),
+							Rate: 1.5,
+						},
+						source.ExchangeRate{
+							From: *money.GetCurrency("USD"),
+							To:   *money.GetCurrency("RUB"),
+							Rate: 1.5,
+						},
+					},
+				},
+			},
+			release:  1,
+			commit:   0,
+			rollback: 1,
+		},
+		{
+			name: "update one rate with archive error",
+			run: func(app App) []any {
+				err := app.UpdateRates()
+				return []any{nil, err}
+			},
+			expectedResult: []any{
+				nil,
+				nil,
+			},
+			querier: []struct {
+				method string
+				args   []any
+				res    []any
+			}{
+				{
+					method: "UpdateRate",
+					args: []any{
+						ctx,
+						repository.UpdateRateParams{
+							CurrencyFrom: "RUB",
+							CurrencyTo:   "USD",
+							Rate:         getpgtype("1.5"),
+						},
+					},
+					res: []any{
+						nil,
+					},
+				},
+				{
+					method: "ArchiveRate",
+					args: []any{
+						ctx,
+						repository.ArchiveRateParams{
+							CurrencyFrom: "RUB",
+							CurrencyTo:   "USD",
+						},
+					},
+					res: []any{
+						fmt.Errorf("some error"),
+					},
+				},
+			},
+			resources: []struct {
+				res []any
+			}{
+				{
+					res: []any{
+						source.ExchangeRate{
+							From: *money.GetCurrency("RUB"),
+							To:   *money.GetCurrency("USD"),
+							Rate: 1.5,
+						},
+						source.ExchangeRate{
+							From: *money.GetCurrency("USD"),
+							To:   *money.GetCurrency("RUB"),
+							Rate: 1.5,
+						},
+					},
+				},
+			},
+			release:  1,
+			commit:   0,
+			rollback: 1,
 		},
 	}
 	for _, testCase := range testCases {
