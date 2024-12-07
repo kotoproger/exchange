@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestApp(t *testing.T) {
+func TestApp(t *testing.T) { //nolint:funlen
 	ctx := context.Background()
 	SomeTime := time.Now()
 	testCases := []struct {
@@ -283,7 +283,7 @@ func TestApp(t *testing.T) {
 				repoPool.On("GetRepository", ctx).Return(
 					mockQuerier,
 					func(m MockFunc) func() error {
-						return func() error {
+						return func() error { //nolint:gocritic
 							return m.callError()
 						}
 					}(mockCommit),
@@ -304,7 +304,7 @@ func TestApp(t *testing.T) {
 				repoPool.On("GetRepository", ctx).Return(
 					nil,
 					func(m MockFunc) func() error {
-						return func() error {
+						return func() error { //nolint:gocritic
 							return m.callError()
 						}
 					}(mockCommit),

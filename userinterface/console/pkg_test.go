@@ -52,7 +52,7 @@ func (b *TestStringReader) Read(p []byte) (n int, err error) {
 	return
 }
 
-func TestRun(t *testing.T) { 
+func TestRun(t *testing.T) { //nolint:funlen
 	dt, _ := time.Parse(time.RFC3339, "2026-01-02T15:04:05Z")
 	testCases := []struct {
 		name        string

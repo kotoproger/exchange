@@ -30,8 +30,8 @@ issues:
         - gosec
         - govet
         - lll
-        - funlen
-        - gocritic
+        # - funlen
+        # - gocritic
     - path: _test_
       linters:
         - errcheck
@@ -40,8 +40,8 @@ issues:
         - gosec
         - govet
         - lll
-        - funlen
-        - gocritic
+        # - funlen
+        # - gocritic
 
 linters:
   disable-all: true
