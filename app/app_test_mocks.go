@@ -73,7 +73,7 @@ func (m MockExchangeSource) Get() <-chan source.ExchangeRate {
 	args := m.Called()
 
 	list := []source.ExchangeRate{}
-	for i := 1; i < args.Int(0); i++ {
+	for i := 1; i <= args.Int(0); i++ {
 		sourceItem := args.Get(i).(source.ExchangeRate)
 		list = append(list, sourceItem)
 	}

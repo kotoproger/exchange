@@ -308,6 +308,63 @@ func TestApp(t *testing.T) { //nolint:funlen
 			commit:   0,
 			rollback: 0,
 		},
+		{
+			name: "update one rate",
+			run: func(app App) []any {
+				err := app.UpdateRates()
+				return []any{nil, err}
+			},
+			expectedResult: []any{
+				nil,
+				nil,
+			},
+			querier: map[string]struct {
+				args []any
+				res  []any
+			}{
+				"UpdateRate": {
+					args: []any{
+						ctx,
+						repository.UpdateRateParams{
+							CurrencyFrom: "RUB",
+							CurrencyTo:   "USD",
+							Rate:         getpgtype("1.5"),
+						},
+					},
+					res: []any{
+						nil,
+					},
+				},
+				"ArchiveRate": {
+					args: []any{
+						ctx,
+						repository.ArchiveRateParams{
+							CurrencyFrom: "RUB",
+							CurrencyTo:   "USD",
+						},
+					},
+					res: []any{
+						nil,
+					},
+				},
+			},
+			resources: []struct {
+				res []any
+			}{
+				{
+					res: []any{
+						source.ExchangeRate{
+							From: *money.GetCurrency("RUB"),
+							To:   *money.GetCurrency("USD"),
+							Rate: 1.5,
+						},
+					},
+				},
+			},
+			release:  1,
+			commit:   1,
+			rollback: 0,
+		},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
@@ -335,25 +392,6 @@ func TestApp(t *testing.T) { //nolint:funlen
 
 			for method, params := range testCase.querier {
 				mockQuerier.On(method, params.args...).Return(params.res...)
-				repoPool.On("GetRepository", ctx).Return(
-					mockQuerier,
-					func(m MockFunc) func() error {
-						return func() error { //nolint:gocritic
-							return m.callError()
-						}
-					}(mockCommit),
-					func(m MockFunc) func() {
-						return func() {
-							m.call()
-						}
-					}(mockRollback),
-					func(m MockFunc) func() {
-						return func() {
-							m.call()
-						}
-					}(mockRelease),
-					nil,
-				)
 			}
 			if testCase.repoPool != nil {
 				repoPool.On("GetRepository", ctx).Return(
@@ -374,6 +412,26 @@ func TestApp(t *testing.T) { //nolint:funlen
 						}
 					}(mockRelease),
 					testCase.repoPool,
+				)
+			} else if len(testCase.querier) > 0 {
+				repoPool.On("GetRepository", ctx).Return(
+					mockQuerier,
+					func(m MockFunc) func() error {
+						return func() error { //nolint:gocritic
+							return m.callError()
+						}
+					}(mockCommit),
+					func(m MockFunc) func() {
+						return func() {
+							m.call()
+						}
+					}(mockRollback),
+					func(m MockFunc) func() {
+						return func() {
+							m.call()
+						}
+					}(mockRelease),
+					nil,
 				)
 			}
 
