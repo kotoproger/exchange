@@ -7,6 +7,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"github.com/kotoproger/exchange/app"
+	"github.com/kotoproger/exchange/internal/repository"
+	"github.com/kotoproger/exchange/internal/repositorywrapper"
 	"github.com/kotoproger/exchange/internal/source"
 	"github.com/kotoproger/exchange/internal/source/cbr"
 	"github.com/kotoproger/exchange/userinterface/console"
@@ -35,7 +37,10 @@ func main() {
 		[]source.ExchangeSource{
 			cbr.NewCbr(sourceURL),
 		},
-		pool,
+		&repositorywrapper.Wrapper{
+			Pool: pool,
+			Repo: &repository.Queries{},
+		},
 	)
 
 	controller := console.NewConsole(app, os.Stdin, os.Stdout)
