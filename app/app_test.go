@@ -21,9 +21,10 @@ func TestApp(t *testing.T) { //nolint:funlen
 		name           string
 		run            func(app App) []any
 		expectedResult []any
-		querier        map[string]struct {
-			args []any
-			res  []any
+		querier        []struct {
+			method string
+			args   []any
+			res    []any
 		}
 		resources []struct {
 			res []any
@@ -48,10 +49,11 @@ func TestApp(t *testing.T) { //nolint:funlen
 				money.New(10, "RUB"),
 				nil,
 			},
-			querier: make(map[string]struct {
-				args []any
-				res  []any
-			}),
+			querier: []struct {
+				method string
+				args   []any
+				res    []any
+			}{},
 			resources: []struct {
 				res []any
 			}{},
@@ -69,11 +71,13 @@ func TestApp(t *testing.T) { //nolint:funlen
 				money.New(5, "USD"),
 				nil,
 			},
-			querier: map[string]struct {
-				args []any
-				res  []any
+			querier: []struct {
+				method string
+				args   []any
+				res    []any
 			}{
-				"GetCuurentRate": {
+				{
+					method: "GetCuurentRate",
 					args: []any{
 						ctx,
 						repository.GetCuurentRateParams{CurrencyFrom: "RUB", CurrencyTo: "USD"},
@@ -122,11 +126,13 @@ func TestApp(t *testing.T) { //nolint:funlen
 				nullMoney(),
 				errors.New("some error"),
 			},
-			querier: map[string]struct {
-				args []any
-				res  []any
+			querier: []struct {
+				method string
+				args   []any
+				res    []any
 			}{
-				"GetCuurentRate": {
+				{
+					method: "GetCuurentRate",
 					args: []any{
 						ctx,
 						repository.GetCuurentRateParams{CurrencyFrom: "RUB", CurrencyTo: "USD"},
@@ -159,10 +165,11 @@ func TestApp(t *testing.T) { //nolint:funlen
 				money.New(10, "RUB"),
 				nil,
 			},
-			querier: make(map[string]struct {
-				args []any
-				res  []any
-			}),
+			querier: []struct {
+				method string
+				args   []any
+				res    []any
+			}{},
 			resources: []struct {
 				res []any
 			}{},
@@ -181,11 +188,13 @@ func TestApp(t *testing.T) { //nolint:funlen
 				money.New(5, "USD"),
 				nil,
 			},
-			querier: map[string]struct {
-				args []any
-				res  []any
+			querier: []struct {
+				method string
+				args   []any
+				res    []any
 			}{
-				"GetRateOnDate": {
+				{
+					method: "GetRateOnDate",
 					args: []any{
 						ctx,
 						repository.GetRateOnDateParams{CurrencyFrom: "RUB", CurrencyTo: "USD", CreatedAt: getpgdate(SomeTime)},
@@ -236,11 +245,13 @@ func TestApp(t *testing.T) { //nolint:funlen
 				nullMoney(),
 				errors.New("some error"),
 			},
-			querier: map[string]struct {
-				args []any
-				res  []any
+			querier: []struct {
+				method string
+				args   []any
+				res    []any
 			}{
-				"GetRateOnDate": {
+				{
+					method: "GetRateOnDate",
 					args: []any{
 						ctx,
 						repository.GetRateOnDateParams{CurrencyFrom: "RUB", CurrencyTo: "USD", CreatedAt: getpgdate(SomeTime)},
@@ -269,9 +280,10 @@ func TestApp(t *testing.T) { //nolint:funlen
 				nil,
 				nil,
 			},
-			querier: map[string]struct {
-				args []any
-				res  []any
+			querier: []struct {
+				method string
+				args   []any
+				res    []any
 			}{},
 			resources: []struct {
 				res []any
@@ -290,9 +302,10 @@ func TestApp(t *testing.T) { //nolint:funlen
 				nil,
 				nil,
 			},
-			querier: map[string]struct {
-				args []any
-				res  []any
+			querier: []struct {
+				method string
+				args   []any
+				res    []any
 			}{},
 			resources: []struct {
 				res []any
@@ -318,11 +331,13 @@ func TestApp(t *testing.T) { //nolint:funlen
 				nil,
 				nil,
 			},
-			querier: map[string]struct {
-				args []any
-				res  []any
+			querier: []struct {
+				method string
+				args   []any
+				res    []any
 			}{
-				"UpdateRate": {
+				{
+					method: "UpdateRate",
 					args: []any{
 						ctx,
 						repository.UpdateRateParams{
@@ -335,7 +350,8 @@ func TestApp(t *testing.T) { //nolint:funlen
 						nil,
 					},
 				},
-				"ArchiveRate": {
+				{
+					method: "ArchiveRate",
 					args: []any{
 						ctx,
 						repository.ArchiveRateParams{
@@ -365,6 +381,107 @@ func TestApp(t *testing.T) { //nolint:funlen
 			commit:   1,
 			rollback: 0,
 		},
+		{
+			name: "update from two sources",
+			run: func(app App) []any {
+				err := app.UpdateRates()
+				return []any{nil, err}
+			},
+			expectedResult: []any{
+				nil,
+				nil,
+			},
+			querier: []struct {
+				method string
+				args   []any
+				res    []any
+			}{
+				{
+					method: "UpdateRate",
+					args: []any{
+						ctx,
+						repository.UpdateRateParams{
+							CurrencyFrom: "RUB",
+							CurrencyTo:   "USD",
+							Rate:         getpgtype("1.5"),
+						},
+					},
+					res: []any{
+						nil,
+					},
+				},
+				{
+					method: "UpdateRate",
+					args: []any{
+						ctx,
+						repository.UpdateRateParams{
+							CurrencyFrom: "USD",
+							CurrencyTo:   "RUB",
+							Rate:         getpgtype("1.5"),
+						},
+					},
+					res: []any{
+						nil,
+					},
+				},
+				{
+					method: "ArchiveRate",
+					args: []any{
+						ctx,
+						repository.ArchiveRateParams{
+							CurrencyFrom: "RUB",
+							CurrencyTo:   "USD",
+						},
+					},
+					res: []any{
+						nil,
+					},
+				},
+				{
+					method: "ArchiveRate",
+					args: []any{
+						ctx,
+						repository.ArchiveRateParams{
+							CurrencyFrom: "USD",
+							CurrencyTo:   "RUB",
+						},
+					},
+					res: []any{
+						nil,
+					},
+				},
+			},
+			resources: []struct {
+				res []any
+			}{
+				{
+					res: []any{
+						source.ExchangeRate{
+							From: *money.GetCurrency("RUB"),
+							To:   *money.GetCurrency("USD"),
+							Rate: 1.5,
+						},
+					},
+				},
+				{
+					res: []any{
+						source.ExchangeRate{
+							From: *money.GetCurrency("RUB"),
+							To:   *money.GetCurrency("USD"),
+							Rate: 1.5,
+						},
+						source.ExchangeRate{
+							From: *money.GetCurrency("USD"),
+							To:   *money.GetCurrency("RUB"),
+							Rate: 1.5,
+						},
+					},
+				},
+			},
+			release:  2,
+			commit:   2,
+			rollback: 0,
+		},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
@@ -390,8 +507,8 @@ func TestApp(t *testing.T) { //nolint:funlen
 				mockCommit.On("callError").Return(testCase.commitError).Times(testCase.commit)
 			}
 
-			for method, params := range testCase.querier {
-				mockQuerier.On(method, params.args...).Return(params.res...)
+			for _, params := range testCase.querier {
+				mockQuerier.On(params.method, params.args...).Return(params.res...)
 			}
 			if testCase.repoPool != nil {
 				repoPool.On("GetRepository", ctx).Return(
