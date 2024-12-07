@@ -29,9 +29,9 @@ func TestApp(t *testing.T) { //nolint:funlen
 			res []any
 		}
 		repoPool    error
-		release     bool
-		commit      bool
-		rollback    bool
+		release     int
+		commit      int
+		rollback    int
 		commitError error
 	}{
 		////////////////////////// exchange
@@ -87,9 +87,9 @@ func TestApp(t *testing.T) { //nolint:funlen
 			resources: []struct {
 				res []any
 			}{},
-			release:  true,
-			commit:   true,
-			rollback: false,
+			release:  1,
+			commit:   1,
+			rollback: 0,
 		},
 		{
 			name: "exchange rub -> usd error on repository acquire",
@@ -105,9 +105,9 @@ func TestApp(t *testing.T) { //nolint:funlen
 				mock.Anything,
 			},
 			repoPool: errors.New("some error"),
-			release:  false,
-			commit:   false,
-			rollback: false,
+			release:  0,
+			commit:   0,
+			rollback: 0,
 		},
 		{
 			name: "exchange rub -> usd erro on rate search",
@@ -140,9 +140,9 @@ func TestApp(t *testing.T) { //nolint:funlen
 			resources: []struct {
 				res []any
 			}{},
-			release:  true,
-			commit:   true,
-			rollback: false,
+			release:  1,
+			commit:   1,
+			rollback: 0,
 		},
 		////////////////////// exchange on date
 		{
@@ -199,9 +199,9 @@ func TestApp(t *testing.T) { //nolint:funlen
 			resources: []struct {
 				res []any
 			}{},
-			release:  true,
-			commit:   true,
-			rollback: false,
+			release:  1,
+			commit:   1,
+			rollback: 0,
 		},
 		{
 			name: "exchange rub -> usd error on repository acquire",
@@ -218,9 +218,9 @@ func TestApp(t *testing.T) { //nolint:funlen
 				mock.Anything,
 			},
 			repoPool: errors.New("some error"),
-			release:  false,
-			commit:   false,
-			rollback: false,
+			release:  0,
+			commit:   0,
+			rollback: 0,
 		},
 		{
 			name: "exchange rub -> usd erro on rate search",
@@ -254,28 +254,50 @@ func TestApp(t *testing.T) { //nolint:funlen
 			resources: []struct {
 				res []any
 			}{},
-			release:  true,
-			commit:   true,
-			rollback: false,
+			release:  1,
+			commit:   1,
+			rollback: 0,
 		},
 		//////////////////////////
+		{
+			name: "update without sources",
+			run: func(app App) []any {
+				err := app.UpdateRates()
+				return []any{nil, err}
+			},
+			expectedResult: []any{
+				nil,
+				nil,
+			},
+			querier: map[string]struct {
+				args []any
+				res  []any
+			}{},
+			resources: []struct {
+				res []any
+			}{},
+			release:  0,
+			commit:   0,
+			rollback: 0,
+		},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
+			sourcesPool := []source.ExchangeSource{}
 			repoPool := MockWrapper{}
 			mocksource := MockExchangeSource{}
 			mockQuerier := MockQueries{}
 			mockCommit := MockFunc{}
 			mockRollback := MockFunc{}
 			mockRelease := MockFunc{}
-			if testCase.release {
-				mockRelease.On("call")
+			if testCase.release > 0 {
+				mockRelease.On("call").Times(testCase.release)
 			}
-			if testCase.rollback {
-				mockRollback.On("call")
+			if testCase.rollback > 0 {
+				mockRollback.On("call").Times(testCase.rollback)
 			}
-			if testCase.commit {
-				mockCommit.On("callError").Return(testCase.commitError)
+			if testCase.commit > 0 {
+				mockCommit.On("callError").Return(testCase.commitError).Times(testCase.commit)
 			}
 
 			for method, params := range testCase.querier {
@@ -323,11 +345,9 @@ func TestApp(t *testing.T) { //nolint:funlen
 			}
 
 			app := App{
-				ctx: ctx,
-				rateSources: []source.ExchangeSource{
-					&mocksource,
-				},
-				repoPool: repoPool,
+				ctx:         ctx,
+				rateSources: sourcesPool,
+				repoPool:    repoPool,
 			}
 
 			res := testCase.run(app)
