@@ -14,8 +14,15 @@ services:
 
     app:
         container_name: app
+        depends_on:
+            - pg-storage
         build: 
             target: build-release-stage
             dockerfile: Dockerfile
         env_file: .env
         tty: true
+networks:
+    default:
+        driver: bridge
+        ipam:
+            driver: default
