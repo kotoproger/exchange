@@ -69,15 +69,21 @@ type MockExchangeSource struct {
 	mock.Mock
 }
 
-func (m *MockExchangeSource) Get() <-chan source.ExchangeRate {
-	chanel := make(chan source.ExchangeRate)
+func (m MockExchangeSource) Get() <-chan source.ExchangeRate {
 	args := m.Called()
-	var list []source.ExchangeRate
-	list, _ = args.Get(0).([]source.ExchangeRate)
 
+	list := []source.ExchangeRate{}
+	for i := 1; i < args.Int(0); i++ {
+		sourceItem := args.Get(i).(source.ExchangeRate)
+		list = append(list, sourceItem)
+	}
+
+	chanel := make(chan source.ExchangeRate, len(list))
 	for _, item := range list {
 		chanel <- item
 	}
+
 	close(chanel)
+
 	return chanel
 }

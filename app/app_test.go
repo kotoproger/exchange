@@ -204,7 +204,7 @@ func TestApp(t *testing.T) { //nolint:funlen
 			rollback: 0,
 		},
 		{
-			name: "exchange rub -> usd error on repository acquire",
+			name: "exchange on date rub -> usd error on repository acquire",
 			run: func(app App) []any {
 				money, err := app.ExchangeToDate(
 					money.New(10, "RUB"),
@@ -223,7 +223,7 @@ func TestApp(t *testing.T) { //nolint:funlen
 			rollback: 0,
 		},
 		{
-			name: "exchange rub -> usd erro on rate search",
+			name: "exchange on date rub -> usd erro on rate search",
 			run: func(app App) []any {
 				money, err := app.ExchangeToDate(
 					money.New(10, "RUB"),
@@ -258,7 +258,7 @@ func TestApp(t *testing.T) { //nolint:funlen
 			commit:   1,
 			rollback: 0,
 		},
-		//////////////////////////
+		////////////////////////// update rates
 		{
 			name: "update without sources",
 			run: func(app App) []any {
@@ -280,6 +280,34 @@ func TestApp(t *testing.T) { //nolint:funlen
 			commit:   0,
 			rollback: 0,
 		},
+		{
+			name: "update without empty sources",
+			run: func(app App) []any {
+				err := app.UpdateRates()
+				return []any{nil, err}
+			},
+			expectedResult: []any{
+				nil,
+				nil,
+			},
+			querier: map[string]struct {
+				args []any
+				res  []any
+			}{},
+			resources: []struct {
+				res []any
+			}{
+				{
+					res: []any{},
+				},
+				{
+					res: []any{},
+				},
+			},
+			release:  0,
+			commit:   0,
+			rollback: 0,
+		},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
@@ -290,6 +318,11 @@ func TestApp(t *testing.T) { //nolint:funlen
 			mockCommit := MockFunc{}
 			mockRollback := MockFunc{}
 			mockRelease := MockFunc{}
+			for _, sourceconfig := range testCase.resources {
+				mock := MockExchangeSource{}
+				mock.On("Get").Return(append([]any{castIntToAny(len(sourceconfig.res))}, sourceconfig.res...)...)
+				sourcesPool = append(sourcesPool, mock)
+			}
 			if testCase.release > 0 {
 				mockRelease.On("call").Times(testCase.release)
 			}
@@ -363,6 +396,10 @@ func TestApp(t *testing.T) { //nolint:funlen
 			mockRelease.AssertExpectations(t)
 			mockCommit.AssertExpectations(t)
 			mockRollback.AssertExpectations(t)
+			for _, source := range sourcesPool {
+				mock := source.(MockExchangeSource)
+				mock.AssertExpectations(t)
+			}
 		})
 	}
 }
@@ -379,4 +416,8 @@ func nullMoney() *money.Money {
 func getpgdate(someTime time.Time) (ret pgtype.Timestamptz) {
 	ret.Scan(someTime)
 	return
+}
+
+func castIntToAny(i int) any {
+	return i
 }
