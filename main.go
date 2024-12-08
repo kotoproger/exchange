@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"os"
+	"sync"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
@@ -43,6 +44,13 @@ func main() {
 		},
 	)
 
+	var wg sync.WaitGroup
 	controller := console.NewConsole(app, os.Stdin, os.Stdout)
-	controller.Run()
+	wg.Add(1)
+	go func(wg *sync.WaitGroup, controller *console.Console) {
+		defer wg.Done()
+		controller.Run()
+	}(&wg, controller)
+
+	wg.Wait()
 }
