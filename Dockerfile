@@ -18,7 +18,6 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o /application
 
 FROM build-stage AS run-test-stage
 RUN go test -v ./...
-RUN make migration-up
 
 # Deploy the application binary into a lean image
 FROM build-stage AS build-release-stage
