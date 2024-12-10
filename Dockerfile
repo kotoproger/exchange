@@ -1,4 +1,4 @@
-FROM golang:1.22 AS build-stage
+FROM golang:1.22.10-alpine AS build-stage
 
 WORKDIR /app
 
@@ -9,17 +9,17 @@ COPY *.go ./
 COPY app ./app
 COPY internal ./internal
 COPY userinterface ./userinterface
-COPY bin ./bin
 COPY Makefile ./
 COPY sql ./sql
 COPY .env ./
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o /application
 
-FROM build-stage AS run-test-stage
-RUN go test -v ./...
+FROM alpine:latest AS build-release-stage
 
-# Deploy the application binary into a lean image
-FROM build-stage AS build-release-stage
+WORKDIR /
 
+COPY --from=build-stage /application ./application
+COPY --from=build-stage /app/sql/migrations /sql/migrations
+COPY --from=build-stage /app/.env ./.env
 # RUN make migration-up

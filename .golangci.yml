@@ -36,6 +36,8 @@ linters-settings:
           - net/http/httptest
           - github.com/kotoproger/exchange/userinterface
           - string
+          - github.com/jackc/pgx/v5/stdlib
+          - github.com/pressly/goose/v3
   funlen:
     lines: 150
     statements: 80

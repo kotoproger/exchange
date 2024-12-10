@@ -5,7 +5,9 @@ import (
 	"os"
 	"sync"
 
+	_ "github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/joho/godotenv"
 	"github.com/kotoproger/exchange/app"
 	"github.com/kotoproger/exchange/internal/repository"
@@ -13,6 +15,7 @@ import (
 	"github.com/kotoproger/exchange/internal/source"
 	"github.com/kotoproger/exchange/internal/source/cbr"
 	"github.com/kotoproger/exchange/userinterface/console"
+	"github.com/pressly/goose/v3"
 )
 
 func main() {
@@ -27,6 +30,21 @@ func main() {
 	if err != nil {
 		panic("cant create connection pool")
 	}
+
+	goose.SetDialect("postgres")
+
+	db := stdlib.OpenDBFromPool(pool)
+	if db == nil {
+		panic("cannot open db")
+	}
+
+	println("Migrating")
+
+	err = goose.Up(db, "./sql/migrations")
+	if err != nil {
+		panic(err.Error())
+	}
+	println("Done")
 
 	sourceURL, ok := os.LookupEnv("APP_CB_API")
 	if !ok {
