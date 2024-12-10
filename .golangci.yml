@@ -5,6 +5,37 @@ run:
     - !bench
 
 linters-settings:
+  depguard:
+    rules:
+      main:
+        allow:
+          - github.com/jackc/pgx/v5
+          - github.com/jackc/pgx/v5/pgxpool
+          - github.com/kotoproger/exchange/internal/repository
+          - github.com/Rhymond/go-money
+          - context
+          - fmt
+          - os
+          - sync
+          - github.com/joho/godotenv
+          - github.com/kotoproger/exchange/app
+          - github.com/kotoproger/exchange/internal/source
+          - github.com/kotoproger/exchange/internal/source/cbr
+          - github.com/kotoproger/exchange/userinterface/console
+          - math
+          - strconv
+          - time
+          - github.com/kotoproger/exchange/internal/repositorywrapper
+          - errors
+          - testing
+          - github.com/stretchr/testify/assert
+          - github.com/stretchr/testify/mock
+          - encoding/json
+          - io
+          - net/http
+          - net/http/httptest
+          - github.com/kotoproger/exchange/userinterface
+          - string
   funlen:
     lines: 150
     statements: 80
@@ -30,8 +61,6 @@ issues:
         - gosec
         - govet
         - lll
-        # - funlen
-        # - gocritic
     - path: _test_
       linters:
         - errcheck
@@ -40,14 +69,12 @@ issues:
         - gosec
         - govet
         - lll
-        # - funlen
-        # - gocritic
-
 linters:
   disable-all: true
   enable:
     - asciicheck
     - bodyclose
+    - depguard
     - dogsled
     - dupl
     - durationcheck
@@ -64,6 +91,8 @@ linters:
     - gofmt
     - gofumpt
     - goheader
+    - gomoddirectives
+    - gomodguard
     - goprintffuncname
     - gosec
     - gosimple
@@ -80,12 +109,16 @@ linters:
     - prealloc
     - predeclared
     - revive
+    - rowserrcheck
+    - sqlclosecheck
     - staticcheck
     - stylecheck
     - tagliatelle
     - thelper
+    - tparallel
     - typecheck
     - unconvert
     - unparam
     - unused
+    - wastedassign
     - whitespace
