@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"os"
 	"sync"
 
@@ -20,7 +19,6 @@ import (
 )
 
 func main() {
-
 	godotenv.Load()
 
 	connURL, ok := os.LookupEnv("APP_DATABASE_URL")
@@ -44,7 +42,7 @@ func main() {
 
 	err = goose.Up(db, "./sql/migrations")
 	if err != nil {
-		log.Fatalf(err.Error())
+		panic(err.Error())
 	}
 	println("Done")
 
