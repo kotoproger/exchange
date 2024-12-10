@@ -26,3 +26,6 @@ docker-app:
 	docker compose up -d --build && \
 	docker compose exec -t app /application ; \
 	docker compose stop
+show-cover:
+	go test -coverprofile cover.out ./... ; \
+	go tool cover -html=cover.out
