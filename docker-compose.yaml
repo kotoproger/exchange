@@ -7,15 +7,20 @@ services:
             POSTGRES_USER: ${APP_DB_USER}
             POSTGRES_PASSWORD: ${APP_DB_PASSWORD}
             PGDATA: "/var/lib/postgresql/data/pgdata"
-        volumes:
-            - ./localdata/pg-storage:/var/lib/postgresql/data
         ports:
             - ${APP_DB_PORT}:5432
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready", "-d", "db_prod"]
+            interval: 5s
+            timeout: 10s
+            retries: 10
+            start_period: 5s 
 
     app:
         container_name: app
         depends_on:
-            - pg-storage
+            pg-storage:
+                condition: service_healthy
         build: 
             target: build-release-stage
             dockerfile: Dockerfile
