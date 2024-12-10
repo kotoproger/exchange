@@ -24,6 +24,5 @@ lint:
 
 docker-app:
 	docker compose up -d --build && \
-	docker compose exec -t app make migration-up && \
 	docker compose exec -t app /application ; \
 	docker compose stop
