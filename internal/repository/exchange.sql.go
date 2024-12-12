@@ -51,15 +51,15 @@ func (q *Queries) GetCuurentRate(ctx context.Context, arg GetCuurentRateParams) 
 
 const GetRateOnDate = `-- name: GetRateOnDate :one
 select hr1.currency_from, hr1.currency_to, hr1.rate from general.history_rates as hr1
-where hr1.currency_from = $1 
-AND hr1.currency_to = $2 
-AND hr1.created_at = (
-    select max(hr.created_at) from general.history_rates as hr
-    where hr.currency_from = $1 
-    AND hr.currency_to = $2 
-    AND hr.created_at < $3 
-    group by hr.currency_from, hr.currency_to
-    )
+where
+	currency_from = $1
+	and currency_to = $2
+	and created_at < $3
+order by
+	currency_from asc,
+	currency_to asc,
+	created_at desc
+limit 1
 `
 
 type GetRateOnDateParams struct {
