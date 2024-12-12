@@ -1,6 +1,6 @@
 module github.com/kotoproger/exchange
 
-go 1.22
+go 1.22.10
 
 require (
 	github.com/Rhymond/go-money v1.0.14
