@@ -21,14 +21,14 @@ exit
 	выход
 
 update
-	обновить курсы валют пример: update 100 rub usd
+	обновить курсы валют 
+	пример: update
 
 exchange <sum> <currency from> <currency to> [date time]
 	сконвертировать сумму из одной валюту в другую дата - опциональный параметр
-
-пример:
-	exchange 100 rub usd
-	exchange 100 rub usd 2026-01-02T15:04:05Z
+	пример:
+		exchange 100 rub usd
+		exchange 100 rub usd 2026-01-02T15:04:05Z
 `
 )
 
