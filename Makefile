@@ -23,7 +23,7 @@ lint:
 	~/go/bin/golangci-lint run --fix
 
 docker-app:
-	docker compose up -d --build && \
+	docker compose up -d && \
 	docker compose exec -t app /application ; \
 	docker compose stop
 show-cover:
